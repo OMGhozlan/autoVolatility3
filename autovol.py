@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument("-a", "--all", action="store_true", help="Run all known plugins")
     parser.add_argument('-e', '--volatility-path', default='/opt/volatility3/vol.py', help="Path to vol.py")
     parser.add_argument("-t", "--threads", type=int, default=4, help="Number of threads")
-    parser.add_argument("--format", choices=["txt", "json", "html"], default="json", help="Output format")
+    parser.add_argument("--format", choices=["txt", "json", "html"], default="txt", help="Output format")
     parser.add_argument("--tui", action="store_true", help="Launch Textual UI dashboard")
     parser.add_argument('--download-symbols', action='store_true', help="Download Volatility 3 Windows symbol packs if not present")
     return parser.parse_args()

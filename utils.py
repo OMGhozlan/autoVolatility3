@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import logging
 import requests
 import zipfile
@@ -14,20 +15,54 @@ class PluginStatus:
     memory_used_mb: float
     cpu_used_percent: float
 
-def get_plugins(console_arg, all_flag):
-    # Keep existing logic
-    basic_plugins = ["windows.pslist", "windows.cmdline", "windows.malfind", "windows.hashdump"]
-    all_plugins = set(basic_plugins + ["windows.psscan", "windows.netscan", "windows.dlllist", "windows.svcscan"])
+def get_plugins(console_arg=None, all_flag=False, dump_flag=False):
+    # Plugin categories
+    dump_plugins = {"dumpcerts", "dumpregistry", "dumpfiles", "servicediff", "hashdump"}
 
+    common_plugins = {
+        "amcache", "auditpol", "cachedump", "clipboard", "cmdline", "cmdscan", "connections",
+        "connscan", "consoles", "deskscan", "devicetree", "dlllist", "envars", "getservicesids",
+        "handles", "hashdump", "hibinfo", "hivelist", "hivescan", "iehistory", "ldrmodules",
+        "lsadump", "malfind", "mbrparser", "memmap", "mftparser", "modules", "notepad", "privs",
+        "pslist", "psscan", "pstree", "psxview", "qemuinfo", "servicediff", "sessions", "sockets",
+        "sockscan", "ssdt", "strings", "svcscan", "symlinkscan", "thrdscan", "verinfo", "windows",
+        "wintree"
+    }
+
+    all_plugins = {
+        "amcache", "apihooks", "atoms", "atomscan", "auditpol", "bigpools", "bioskbd", "cachedump",
+        "callbacks", "clipboard", "cmdline", "cmdscan", "connections", "connscan", "consoles",
+        "crashinfo", "deskscan", "devicetree", "dlldump", "dlllist", "driverirp", "drivermodule",
+        "driverscan", "editbox", "envars", "eventhooks", "evtlogs", "filescan", "gahti", "gditimers",
+        "gdt", "getservicesids", "getsids", "handles", "hashdump", "hibinfo", "hivelist", "hivescan",
+        "hpakextract", "hpakinfo", "idt", "iehistory", "imagecopy", "imageinfo", "joblinks",
+        "kdbgscan", "kpcrscan", "ldrmodules", "lsadump", "malfind", "mbrparser", "memdump",
+        "memmap", "messagehooks", "mftparser", "moddump", "modscan", "modules", "multiscan",
+        "mutantscan", "notepad", "objtypescan", "patcher", "printkey", "privs", "procdump",
+        "pslist", "psscan", "pstree", "psxview", "qemuinfo", "raw2dmp", "sessions", "shellbags",
+        "shimcache", "shutdowntime", "sockets", "sockscan", "ssdt", "strings", "svcscan",
+        "symlinkscan", "thrdscan", "threads", "timeliner", "timers", "truecryptmaster",
+        "truecryptpassphrase", "truecryptsummary", "unloadedmodules", "userassist", "userhandles",
+        "vaddump", "vadinfo", "vadtree", "vadwalk", "vboxinfo", "verinfo", "vmwareinfo", "windows",
+        "wintree", "wndscan"
+    }
+
+    # Selection logic
     if console_arg:
-        return [plugin.strip() for plugin in console_arg.split(",") if plugin.strip()]
+        selected = {p.strip().lower() for p in console_arg.split(",") if p.strip()}
     elif all_flag:
-        return list(all_plugins)
+        selected = all_plugins
+    elif dump_flag:
+        selected = dump_plugins
     else:
-        return basic_plugins
+        selected = common_plugins
+
+    # Return sorted list of unique plugins
+    return sorted(selected)
+
 
 def detect_profile_and_kdbg(memfile, vol_path):
-    """Uses `windows.info` to get the suggested profile and kdbg offset."""
+    """Parses text output of `windows.info` plugin to extract profile and KDBG offset."""
     cmd = [vol_path, "-f", memfile, "windows.info"]
     logging.info(f"📌 Detecting profile/KDBG: {' '.join(cmd)}")
 
@@ -40,25 +75,35 @@ def detect_profile_and_kdbg(memfile, vol_path):
             logging.error(stderr.decode(errors='ignore'))
             return None, None
 
-        try:
-            data = json.loads(stdout.decode(errors="ignore"))
-        except json.JSONDecodeError as e:
-            logging.error("❌ Failed to parse JSON output from windows.info")
-            logging.debug(stdout.decode())
-            return None, None
+        output = stdout.decode(errors='ignore')
 
-        profile = data.get("Suggested Profile(s)", [None])[0]
-        kdbg = data.get("KDBG", {}).get("Offset")
+        # Log raw output for debugging/investigation
+        logging.debug("ℹ️ windows.info output:\n" + output)
 
-        if profile:
-            logging.info(f"🧠 Auto-detected profile: {profile}")
-        if kdbg:
-            logging.info(f"🎯 Auto-detected KDBG: {kdbg}")
+        profile = None
+        kdbg = None
+
+        # 1. Extract profile from "Symbols" line
+        match_profile = re.search(r"Symbols\s+(.*)", output)
+        if match_profile:
+            symbol_path = match_profile.group(1).strip()
+            # Extract profile: filename before first '/' in the pdb path
+            profile_match = re.search(r"windows/([\w\.]+)/", symbol_path)
+            if profile_match:
+                profile = profile_match.group(1)
+                logging.info(f"🧠 Detected profile: {profile}")
+
+        # 2. Extract KDBG from KdVersionBlock line
+        match_kdbg = re.search(r"KdVersionBlock\s+(0x[0-9a-fA-F]+)", output)
+        if match_kdbg:
+            kdbg = match_kdbg.group(1)
+            logging.info(f"🎯 Detected KDBG offset: {kdbg}")
 
         return profile, kdbg
     except Exception as e:
         logging.exception(f"❌ Exception during profile/KDBG detection: {e}")
         return None, None
+
 
 
 def download_and_extract_symbols(destination="/opt/volatility3/symbols"):
@@ -95,3 +140,30 @@ def download_and_extract_symbols(destination="/opt/volatility3/symbols"):
             logging.info(f"✅ {os_name} symbols ready.")
         except Exception as e:
             logging.warning(f"⚠️ Failed to download {os_name} symbols: {e}")
+
+def list_json_capable_plugins(vol_path):
+    """Lists available plugins that support --output json."""
+    cmd = [vol_path, "--info"]
+    try:
+        process = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = process.communicate()
+        output = stdout.decode(errors='ignore')
+
+        plugin_support_map = {}
+
+        cur_plugin = None
+        for line in output.splitlines():
+            line = line.strip()
+            if line.startswith("Plugin:"):
+                cur_plugin = line.split(":", 1)[1].strip()
+                plugin_support_map[cur_plugin] = []
+            elif line.startswith("Supported Output Formats:") and cur_plugin:
+                formats = [fmt.strip() for fmt in line.split(":")[1].split(",")]
+                plugin_support_map[cur_plugin] = formats
+
+        json_plugins = [name for name, formats in plugin_support_map.items() if "JSON" in (fmt.upper() for fmt in formats)]
+        return json_plugins
+
+    except Exception as e:
+        logging.exception("❌ Failed to fetch plugin output support list.")
+        return []
