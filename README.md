@@ -1,71 +1,201 @@
-# AutoVolatility
+# ❄️ AutoVol – Automated Volatility 3 Framework
 
-AutoVolatility is a script made to run several volatility plugins at the same time
+[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
+[![Volatility 3](https://img.shields.io/badge/Volatility-3.x-success)](https://github.com/volatilityfoundation/volatility3)
+[![Docker Ready](https://img.shields.io/badge/Docker-Ready-green)](https://hub.docker.com/)
+[![Textual](https://img.shields.io/badge/Textual-TUI-red.svg)](https://github.com/Textualize/textual)
 
-## How to use
+---
 
-AutoVolatility will create a new folder in the output directory for each plugin executed.
+## 📌 Overview
 
-You can run the "main" volatility plugins doing
+Based on /Inspired by [carlospolop's autoVolatility](https://github.com/carlospolop/autoVolatility)
+**AutoVol** is a modern Python 3-based memory forensics automation toolkit powered by **Volatility 3**.
 
-```python
-python autoVolatility.py -f MEMFILE -d OUT_DIRECTORY
-``` 
+It makes memory analysis faster, more interactive, and more forensic-friendly via:
 
-Be default autoVolatility tries to execute `volatility`. If you do not have volatility executable in path or with this name, you can set where your volatility executable is using the option `-e`
+✅ Plugin automation  
+✅ JSON/HTML export  
+✅ TUI Dashboard (Textual)  
+✅ Rich logging with beautiful formatting  
+✅ CPU + memory usage metrics per plugin  
 
-```python
-python autoVolatility.py -f MEMFILE -d OUT_DIRECTORY -e /home/user/tools/volatility/vol.py
+---
+
+## 💡 Key Features
+
+- 🔍 Powered by **Volatility 3**
+- 🧠 Supports powerful Volatility plugins
+- ⚙️ Multi-threaded plugin execution
+- 📤 Export in **JSON**, **HTML**, or **TXT**
+- 📊 Built-in CPU + Memory usage tracking
+- 👨‍💻 CLI and TUI modes
+- 🐳 Fully Dockerized environment
+
+---
+
+## 📦 Requirements (for manual installation)
+
+```bash
+python 3.11+
+pip install -r requirements.txt
 ```
 
-AutoVolatility will use the plugin "imageinfo" to figure out the profile to use. But if you know the profile, you can set it using the option `-p`
-
-```python
-python autoVolatility.py -f MEMFILE -d OUT_DIRECTORY -p WinXPSP2x86
+**requirements.txt:**
+```
+textual
+rich
+pyfiglet
+psutil
+requests
 ```
 
-If you want to run almos all the default plugins that comes with volatility you can use the option `-a`
+---
 
-```python
-python autoVolatility.py -f MEMFILE -d OUT_DIRECTORY -a
-```
-
-By default autoVolatility uses 8 threads, but you can change it with the option `-t`
-
-```python
-python autoVolatility.py -f MEMFILE -d OUT_DIRECTORY -t 16 # 16 threads
-```
-
-If want autoVolatility to run other plugins, you can do so using the option `-c`
-
-```python
-python autoVolatility.py -f MEMFILE -d OUT_DIRECTORY -c amcache,auditpol,cachedump,clipboard,cmdline,cmdscan # Only these plugins will be executed
-```
-
-The plugins executed by default are:
-
-```python
-
-dump_plugins = ["dumpcerts", "dumpregistry", "dumpfiles", "dumpregistry"]
-
-plugins = ["amcache", "auditpol", "cachedump", "clipboard", "cmdline", "cmdscan", "connections", "connscan", "consoles", "deskscan", "devicetree", "dlllist",
-            "envars", "getservicesids", "handles", "hashdump", "hibinfo", "hivelist", "hivescan", "iehistory", "ldrmodules", "lsadump", "malfind", "mbrparser", "memmap", "mftparser", "modules", "notepad", 
-            "privs", "pslist", "psscan", "pstree", "psxview", "qemuinfo", "servicediff", "sessions", "sockets", "sockscan", "ssdt", "strings", "svcscan", "symlinkscan", "thrdscan", "verinfo", "windows", "wintree"]
-```
-
-The plugins executed using the option `-a` are:
-
-```python
-dump_plugins = ["dumpcerts", "dumpregistry", "dumpfiles", "dumpregistry"]
-
-
-plugins_all = ["amcache", "apihooks", "atoms", "atomscan", "auditpol", "bigpools", "bioskbd", "cachedump", "callbacks", "clipboard", "cmdline", "cmdscan", "connections", "connscan", "consoles", "crashinfo",
-                "deskscan", "devicetree", "dlldump", "dlllist", "driverirp", "drivermodule", "driverscan", "editbox", "envars", "eventhooks", "evtlogs", "filescan", 
-                "gahti", "gditimers", "gdt", "getservicesids", "getsids", "handles", "hashdump", "hibinfo", "hivelist", "hivescan", "hpakextract", "hpakinfo", "idt", "iehistory", "imagecopy", "imageinfo",
-                "joblinks", "kdbgscan", "kpcrscan", "ldrmodules", "lsadump", "malfind", "mbrparser", "memdump", "memmap", "messagehooks", "mftparser", "moddump", "modscan", "modules", "multiscan", "mutantscan",
-                "notepad", "objtypescan", "patcher", "printkey", "privs", "procdump", "pslist", "psscan", "pstree", "psxview", "qemuinfo", "raw2dmp", "screenshot", "servicediff", "sessions", "shellbags", "shimcache",
-                "shutdowntime", "sockets", "sockscan", "ssdt", "strings", "svcscan", "symlinkscan", "thrdscan", "threads", "timeliner", "timers", "truecryptmaster", "truecryptpassphrase", "truecryptsummary",
-                "unloadedmodules", "userassist", "userhandles", "vaddump", "vadinfo", "vadtree", "vadwalk", "vboxinfo", "verinfo", "vmwareinfo", "windows", "wintree", "wndscan"]
-
+## 📁 Project Structure
 
 ```
+AutoVol/
+├── autovol.py          # Main launcher (CLI)
+├── executor.py         # Threaded plugin execution
+├── dashboard.py        # Textual TUI dashboard
+├── utils.py            # Utility libs and shared logic
+├── requirements.txt    # Dependencies
+├── Dockerfile          # Docker image
+└── README.md           # This file
+```
+
+---
+
+## 🖥️ Usage
+
+### 🔧 Basic CLI
+
+```bash
+python autovol.py -f /path/to/image.raw -d ./output --all --format json
+```
+
+### 📊 With Textual TUI
+
+```bash
+python autovol.py -f /path/to/image.raw -d ./output --all --tui --format html
+```
+
+### 🔢 Custom Plugin Set
+
+```bash
+python autovol.py -f mem.raw -d ./out -c "windows.pslist,windows.malfind"
+```
+
+---
+
+## 🐳 Docker Usage
+
+### ⚙️ 1. Build the Docker Image
+
+From the root directory:
+
+```bash
+docker build -t autovol .
+```
+
+---
+
+### ▶️ 2. Run AutoVol (CLI Mode)
+
+```bash
+docker run --rm -it \
+  -v $(pwd)/memdumps:/memdumps \
+  -v $(pwd)/output:/output \
+  autovol \
+  python autovol.py -f /memdumps/image.raw -d /output --all --format json
+```
+
+---
+
+### 🖥️ 3. Run AutoVol (Textual UI Mode)
+
+```bash
+docker run --rm -it \
+  -v $(pwd)/memdumps:/memdumps \
+  -v $(pwd)/output:/output \
+  autovol \
+  python autovol.py -f /memdumps/image.raw -d /output --tui --all
+```
+
+---
+
+### 🧪 Sample Memory Dump Structure
+
+```
+memdumps/
+└── profile-image1.raw
+output/
+└── will contain output/<plugin>/plugin.json
+```
+
+---
+
+## ✨ Output Example
+
+Each plugin output is saved like:
+
+```
+output/
+└── windows.pslist/
+    └── windows.pslist.json  # or .html or .txt
+```
+
+---
+
+## 🔧 Developer/Contributor Guide
+
+### 🧱 Setup Virtual Environment
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### 🧪 Run Locally
+
+```bash
+python autovol.py -f test.raw -d output --all --tui
+```
+
+---
+
+## ✍️ Customization Tips
+
+- 📀 Want web export? Add `Flask` or `FastAPI`
+- 🧩 Want custom plugins? Extend `get_plugins()` in `utils.py`
+- 📚 Want PDF reports? Convert HTML via `wkhtmltopdf`
+
+---
+
+## 🙋 FAQ
+
+> 🟠 **Does this support Volatility 2.x?**  
+🔻 No. AutoVol supports **Volatility 3 only** for modern plugin support & JSON/HTML exports.
+
+> 🔵 **Can I specify how many threads?**  
+✅ Yes: `--threads 4`
+
+> 🔴 **Why should I use Textual mode?**  
+It gives you a live dashboard with plugin status, memory/cpu usage, and rate of execution. Great for live ops/devs!
+
+---
+
+## 📜 License
+
+MIT ©️ 2025
+
+---
+
+## 🌐 More Tools?
+
+You may also like:
+- [Volatility Foundation](https://www.volatilityfoundation.org/)
+- [Textualize.io](https://www.textualize.io/)
+- [Psutil GitHub](https://github.com/giampaolo/psutil)

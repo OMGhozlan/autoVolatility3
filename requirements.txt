@@ -1,0 +1,10 @@
+# Core libraries
+psutil>=5.9.5          # For CPU and memory tracking
+requests>=2.31.0       # For downloading symbols
+rich>=13.7.1           # For beautiful logs, console, and progress bars
+pyfiglet>=1.0.2        # For ASCII banner display
+textual>=0.52.1        # TUI dashboard
+
+# Optional: Enable symbol extraction extensions (If using dwarf2json, etc.)
+# pyelftools>=0.29        # For Linux symbol processing
+# pefile>=2023.2.7        # For Windows PE parsing
