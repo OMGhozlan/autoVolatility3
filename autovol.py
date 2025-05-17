@@ -25,7 +25,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="🎯 AutoVol - Concurrent Memory Forensics Automation")
     parser.add_argument("-f", "--file", required=True, help="Path to memory dump file")
     parser.add_argument("-d", "--directory", required=True, help="Output directory")
-    parser.add_argument("-p", "--profile", help="Volatility profile (if not auto-detected)")
+    parser.add_argument("-p", "--profile", help="Volatility profile (auto-detected if omitted)")
     parser.add_argument("-c", "--console", help="Comma-separated plugin list to execute")
     parser.add_argument("-a", "--all", action="store_true", help="Run all known plugins")
     parser.add_argument('-e', '--volatility-path', default='/opt/volatility3/vol.py', help="Path to vol.py")
