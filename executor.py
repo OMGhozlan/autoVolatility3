@@ -54,8 +54,8 @@ class PluginRunner(threading.Thread):
 
 
                 # Append auto-detected profile and kdbg if needed
-                if "windows" in plugin and self.profile:
-                    cmd += ["--profile", self.profile]
+                # if "windows" in plugin and self.profile:
+                #     cmd += ["--profile", self.profile]
                 if "windows" in plugin and self.kdbg:
                     cmd += ["--kdbg", self.kdbg]
 
@@ -103,8 +103,8 @@ class PluginExecutor:
             log.info("🔍 Detecting memory profile and KDBG offset...")
             self.profile, self.kdbg = detect_profile_and_kdbg(args.file, args.volatility_path)
 
-        if not self.profile:
-            raise RuntimeError("❌ Profile could not be detected. Use --profile manually to proceed.")
+        # if not self.profile:
+        #     raise RuntimeError("❌ Profile could not be detected. Use --profile manually to proceed.")
 
         log.info(f"🧠 Using profile: {self.profile}")
         if self.kdbg:
