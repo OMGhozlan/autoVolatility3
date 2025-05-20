@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument("-d", "--directory", required=True, help="Output directory")
     parser.add_argument("-p", "--profile", help="Volatility profile (auto-detected if omitted)")
     parser.add_argument("-c", "--console", help="Comma-separated plugin list to execute")
-    parser.add_argument("-a", "--all", action="store_true", help="Run all known plugins")
+    # parser.add_argument("-a", "--all", action="store_true", help="Run all known plugins")
     parser.add_argument('-e', '--volatility-path', default='/opt/volatility3/vol.py', help="Path to vol.py")
     parser.add_argument("-t", "--threads", type=int, default=4, help="Number of threads")
     parser.add_argument("--format", choices=["txt", "json", "html"], default="txt", help="Output format")

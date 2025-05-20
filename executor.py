@@ -56,8 +56,8 @@ class PluginRunner(threading.Thread):
                 # Append auto-detected profile and kdbg if needed
                 # if "windows" in plugin and self.profile:
                 #     cmd += ["--profile", self.profile]
-                if "windows" in plugin and self.kdbg:
-                    cmd += ["--kdbg", self.kdbg]
+                # if "windows" in plugin and self.kdbg:
+                #     cmd += ["--kdbg", self.kdbg]
 
                 log.info(f"🔹 Running plugin: {plugin} with command {cmd}")
                 before_cpu = self.process_info.cpu_times()
@@ -94,7 +94,7 @@ class PluginExecutor:
         self.args = args
         self.queue = queue.Queue()
         self.status_queue = queue.Queue()
-        self.plugins = get_plugins(args.console, args.all)
+        self.plugins = get_plugins(args.console)
 
         self.profile = args.profile
         self.kdbg = None
