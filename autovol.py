@@ -6,6 +6,8 @@ from rich.console import Console
 from rich.logging import RichHandler
 from pyfiglet import Figlet
 import logging
+import platform
+import os
 from executor import PluginExecutor
 from dashboard import run_dashboard
 
@@ -37,6 +39,8 @@ def parse_args():
 
 def main():
     args = parse_args()
+    if platform.system().lower() == "windows":
+        args.volatility_path = f"python {os.path.normpath(args.volatility_path)}\\vol.py"
     show_banner()
 
     executor = PluginExecutor(args)
@@ -47,3 +51,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -31,12 +31,13 @@ class PluginRunner(threading.Thread):
 
             try:
                 output_dir = os.path.join(self.args.directory, plugin)
-                os.makedirs(output_dir, exist_ok=True)
+                os.makedirs(output_dir, exist_ok=True)                    
 
+                cmd = [self.args.volatility_path, "-f", self.args.file, plugin]
+                
                 out_ext = self.args.format if "--output" in cmd else "txt"
                 out_file = os.path.join(output_dir, f"{plugin}.{out_ext}")
 
-                cmd = [self.args.volatility_path, "-f", self.args.file, plugin]
 
                 # Only add --output if supported
                 if self.args.format != "txt":
@@ -58,7 +59,7 @@ class PluginRunner(threading.Thread):
                 if "windows" in plugin and self.kdbg:
                     cmd += ["--kdbg", self.kdbg]
 
-                log.info(f"🔹 Running plugin: {plugin}")
+                log.info(f"🔹 Running plugin: {plugin} with command {cmd}")
                 before_cpu = self.process_info.cpu_times()
 
                 with Popen(cmd, stdout=PIPE, stderr=PIPE) as proc:
